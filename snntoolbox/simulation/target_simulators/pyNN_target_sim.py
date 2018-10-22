@@ -185,7 +185,7 @@ class SNN(AbstractSNN):
             self.layers[0].record([str('spikes')])  # Input layer has no 'v'
 
         for layer in self.layers[1:]:
-            layer.set(**self.cellparams)
+            print(layer)
             layer.initialize(v=self.layers[1].get('v_rest'))
             layer.record(vars_to_record)
 

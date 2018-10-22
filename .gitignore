@@ -1,6 +1,9 @@
 # Logs and databases #
 ######################
 examples/models/**/log
+examples/models/**/application_generated_data_files
+examples/models/**/reports
+examples/models/**/x
 
 # Builds #
 ##########

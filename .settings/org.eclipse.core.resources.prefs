@@ -1,0 +1,12 @@
+eclipse.preferences.version=1
+encoding//snntoolbox/bin/run.py=utf-8
+encoding//snntoolbox/bin/utils.py=utf-8
+encoding//snntoolbox/datasets/utils.py=utf-8
+encoding//snntoolbox/parsing/utils.py=utf-8
+encoding//snntoolbox/simulation/target_simulators/MegaSim_target_sim.py=utf-8
+encoding//snntoolbox/simulation/target_simulators/Neuron_target_sim.py=utf-8
+encoding//snntoolbox/simulation/target_simulators/brian2_target_sim.py=utf-8
+encoding//snntoolbox/simulation/target_simulators/brian_target_sim.py=utf-8
+encoding//snntoolbox/simulation/target_simulators/pyNN_target_sim.py=utf-8
+encoding//snntoolbox/simulation/target_simulators/spiNNaker_target_sim.py=utf-8
+encoding//snntoolbox/simulation/utils.py=utf-8

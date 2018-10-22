@@ -6,11 +6,11 @@ filename_ann = 98.96
 evaluate_ann = True
 
 [simulation]
-simulator = INI
+simulator = spiNNaker 
 duration = 30
 num_to_test = 10
 batch_size = 1
-keras_backend = tensorflow
+keras_backend = theano
 
 [input]
 poisson_input = False

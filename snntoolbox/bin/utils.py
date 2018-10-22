@@ -300,9 +300,9 @@ def update_setup(config_filepath):
 
     # Warn user that it is not possible to use Brian2 simulator by loading a
     # pre-converted network from disk.
-    if simulator == 'brian2' and not config.getboolean('tools', 'convert'):
+    if simulator == 'brian2' or 'spiNNaker' and not config.getboolean('tools', 'convert'):
         print(dedent("""\ \n
-            SNN toolbox Warning: When using Brian 2 simulator, you need to
+            SNN toolbox Warning: When using Brian 2 or SpiNNaker simulators, you need to
             convert the network each time you start a new session. (No
             saving/reloading methods implemented.) Setting convert = True.
             \n"""))
