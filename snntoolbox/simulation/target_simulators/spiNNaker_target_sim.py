@@ -26,16 +26,17 @@ class SNN(PyNNSNN):
             self.layers[0].record([str('spikes')])  # Input layer has no 'v'
 
         for layer in self.layers[1:]:
-            #layer.initialize(v=self.layers[1].get('v_rest'))
-            #layer.record(vars_to_record)
-        
-        print(self.get_vars_to_record())
+            # Commenting this section out means everything runs but no spikes
+            layer.initialize(v=self.layers[1].get('v_rest')[0])
+            layer.record(vars_to_record)
+
         # The spikes of the last layer are recorded by default because they
         # contain the networks output (classification guess).
-            if 'spikes' not in vars_to_record:
-                vars_to_record.append(str('spikes'))
-                self.layers[-1].record(vars_to_record)
+        if 'spikes' not in vars_to_record:
+            vars_to_record.append(str('spikes'))
+            self.layers[-1].record(vars_to_record)
         
+        print(vars_to_record)
         
     
     def get_vars_to_record(self):
@@ -57,6 +58,7 @@ class SNN(PyNNSNN):
 
         if 'mem_n_b_l_t' in self._log_keys or 'v_mem' in self._plot_keys:
             vars_to_record.append(str('v'))
+            
 
         return vars_to_record   
     

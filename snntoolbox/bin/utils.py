@@ -72,8 +72,8 @@ def test_full(config, queue=None):
         model_lib = import_module('snntoolbox.parsing.model_libs.' +
                                   config.get('input', 'model_lib') +
                                   '_input_lib')
-        input_model = model_lib.load(config.get('paths', 'path_wd'),
-                                     config.get('paths', 'filename_ann'))
+        input_model = model_lib.load(str(config.get('paths', 'path_wd')),
+                                     str(config.get('paths', 'filename_ann')))
 
         # Evaluate input model.
         if config.getboolean('tools', 'evaluate_ann') and not is_stop(queue):
@@ -102,9 +102,9 @@ def test_full(config, queue=None):
                 'simulation', 'batch_size'), num_to_test, **testset)
 
         # Write parsed model to disk
-        parsed_model.save(
+        parsed_model.save(str(
             os.path.join(config.get('paths', 'path_wd'),
-                         config.get('paths', 'filename_parsed_model') + '.h5'))
+                         config.get('paths', 'filename_parsed_model') + '.h5'))) #to overcome keras bug
 
         # ____________________________ CONVERT _______________________________ #
 
@@ -338,7 +338,7 @@ def update_setup(config_filepath):
         assert os.path.isfile(prototxt_filepath), \
             "File {} not found.".format(prototxt_filepath)
     elif model_lib == 'keras':
-        h5_filepath = os.path.join(path_wd, filename_ann + '.h5')
+        h5_filepath = str(os.path.join(path_wd, filename_ann + '.h5'))
         assert os.path.isfile(h5_filepath), \
             "File {} not found.".format(h5_filepath)
         json_file = filename_ann + '.json'
@@ -414,7 +414,7 @@ def update_setup(config_filepath):
 
     # Specify filenames for models at different stages of the conversion.
     if config.get('paths', 'filename_parsed_model') == '':
-        config.set('paths', 'filename_parsed_model', filename_ann + '_parsed')
+        config.set('paths', 'filename_parsed_model', str(filename_ann) + '_parsed') #bug in keras doesn't like unicode
     if config.get('paths', 'filename_snn') == '':
         config.set('paths', 'filename_snn', '{}_{}'.format(filename_ann,
                                                            simulator))

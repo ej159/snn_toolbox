@@ -129,7 +129,7 @@ class AbstractModelParser:
                           prev_layer)))
                 self._layer_list[prev_layer_idx]['parameters'] = \
                     absorb_bn_parameters(*(parameters + parameters_bn))
-
+            
             if layer_type == 'GlobalAveragePooling2D':
                 print("Replacing GlobalAveragePooling by AveragePooling "
                       "plus Flatten.")
@@ -181,7 +181,7 @@ class AbstractModelParser:
             if layer_type == 'Dense':
                 self.parse_dense(layer, attributes)
 
-            if layer_type == 'Conv2D':
+            if layer_type in {'Conv2D', 'DepthwiseConv2D'}:
                 self.parse_convolution(layer, attributes)
 
             if layer_type in {'Dense', 'Conv2D'}:
