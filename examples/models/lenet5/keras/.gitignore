@@ -1,0 +1,8 @@
+/00Conv2D_6x24x24
+/01MaxPooling2D_6x12x12
+/02Conv2D_16x8x8
+/03MaxPooling2D_16x4x4
+/04Conv2D_120x4x4
+/06Dense_84
+/07Dense_10
+/lenet5_brian
