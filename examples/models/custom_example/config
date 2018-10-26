@@ -1,0 +1,20 @@
+[paths]
+dataset_path = %(path_wd)s/../../datasets/mnist
+filename_ann = custom_example
+
+[tools]
+evaluate_ann = True
+
+[simulation]
+simulator = spiNNaker
+duration = 300
+num_to_test = 10
+batch_size = 1
+keras_backend = tensorflow
+
+[input]
+poisson_input = False
+
+[output]
+log_vars = {'spiketrains_n_b_l_t'}
+plot_vars = {'spikerates'}
