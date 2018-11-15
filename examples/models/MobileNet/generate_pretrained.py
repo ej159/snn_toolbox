@@ -12,6 +12,7 @@ import matplotlib.pyplot as plt
 
 from os.path import expanduser
 home = expanduser("~")
+keras.backend.set_image_data_format("channels_last")
 
 '''from keras.utils.generic_utils import CustomObjectScope
 
@@ -56,6 +57,9 @@ print predictions
 # We will get top 5 predictions which is the default
 label = decode_predictions(predictions)
 print label
+
+
+mobilenet_model.summary()
 
 with open("mobilenet.json", "w") as text_file:
     text_file.write(mobilenet_model.to_json())

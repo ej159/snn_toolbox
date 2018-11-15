@@ -13,6 +13,7 @@ simulator = INI
 duration = 400
 batch_size = 10
 num_to_test = 10
+keras_backend = tensorflow
 
 [normalization]
 percentile = 99 

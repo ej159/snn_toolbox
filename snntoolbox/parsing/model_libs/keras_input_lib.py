@@ -33,9 +33,12 @@ class ModelParser(AbstractModelParser):
         return [mean, var_eps_sqrt_inv, gamma, beta, axis]
 
     def get_inbound_layers(self, layer):
-        from snntoolbox.parsing.utils import get_inbound_layers
-        return get_inbound_layers(layer)
-
+        in_layers = []
+        for node in layer._inbound_nodes:
+            for in_layer in node.inbound_layers:
+                in_layers.append(in_layer)
+        return in_layers
+    
     @property
     def layers_to_skip(self):
         # noinspection PyArgumentList

@@ -184,7 +184,7 @@ class AbstractModelParser:
             if layer_type in {'Conv2D', 'DepthwiseConv2D'}:
                 self.parse_convolution(layer, attributes)
 
-            if layer_type in {'Dense', 'Conv2D'}:
+            if layer_type in {'Dense', 'Conv2D', 'DepthwiseConv2D'}:
                 weights, bias = attributes['parameters']
                 if self.config.getboolean('cell', 'binarize_weights'):
                     from snntoolbox.utils.utils import binarize
