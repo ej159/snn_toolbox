@@ -112,6 +112,7 @@ class AbstractModelParser:
         inserted_flatten = False
         for layer in layers:
             layer_type = self.get_type(layer)
+            layer_shape = layer.output_shape
 
             # Absorb BatchNormalization layer into parameters of previous layer
             if layer_type == 'BatchNormalization':
@@ -158,8 +159,10 @@ class AbstractModelParser:
             if not inserted_flatten:
                 inserted_flatten = self.try_insert_flatten(layer, idx, name_map)
                 idx += inserted_flatten
-
-            print("Parsing layer {}.".format(layer_type))
+            
+            layer_weight_shape = layer.get_weights()[0].shape
+            
+            print("Parsing layer {}, weight shape: {}, output shape: {}.".format(layer_type, layer_weight_shape, layer_shape))
 
             if layer_type == 'MaxPooling2D' and \
                     self.config.getboolean('conversion', 'max2avg_pool'):
@@ -314,14 +317,24 @@ class AbstractModelParser:
         """
 
         inbound = self.get_inbound_layers(layer)
+        
         for ib in range(len(inbound)):
-            for _ in range(len(self.layers_to_skip)):
-                if self.get_type(inbound[ib]) in self.layers_to_skip:
-                    inbound[ib] = self.get_inbound_layers(inbound[ib])[0]
-                else:
-                    break
+            print("inbound type is {}.".format(self.get_type(inbound[ib])))
+            if self.get_type(inbound[ib]) in self.layers_to_skip:
+                #print("skipping name for layer")
+                prev_inb = self.get_inbound_layers(inbound[ib])[0]
+                #print("moving to layer {}." .format(self.get_type(prev_inb)))
+                while True:
+                    if self.get_type(prev_inb) in self.layers_to_skip:
+                        #print("going back a layer")
+                        prev_inb = self.get_inbound_layers(prev_inb)[0]
+                    else:
+                        #print("found a suitable inbound layer {}." .format(self.get_type(prev_inb)))
+                        inbound[ib] = prev_inb
+                        break
+        
         if len(self._layer_list) == 0 or \
-                any([self.get_type(inb) == 'InputLayer' for inb in inbound]):
+        any([self.get_type(inb) == 'InputLayer' for inb in inbound]):
             return ['input']
         else:
             inb_idxs = [name_map[str(id(inb))] for inb in inbound]
@@ -351,7 +364,7 @@ class AbstractModelParser:
         self._layers_to_skip: List[str]
         """
 
-        return ['BatchNormalization', 'Activation', 'Dropout']
+        return ['BatchNormalization', 'Activation', 'Dropout', 'ReLU', 'ZeroPadding2D']
 
     @abstractmethod
     def has_weights(self, layer):
@@ -632,7 +645,9 @@ class AbstractModelParser:
         parsed_model: keras.models.Model
             A Keras model, functionally equivalent to `input_model`.
         """
-
+        #needed for MobileNet
+        from keras.applications.mobilenet import DepthwiseConv2D
+        
         img_input = keras.layers.Input(batch_shape=self.get_batch_input_shape(),
                                        name='input')
         parsed_layers = {'input': img_input}

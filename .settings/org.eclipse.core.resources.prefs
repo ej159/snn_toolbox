@@ -1,6 +1,7 @@
 eclipse.preferences.version=1
 encoding//snntoolbox/bin/run.py=utf-8
 encoding//snntoolbox/bin/utils.py=utf-8
+encoding//snntoolbox/conversion/__init__.py=utf-8
 encoding//snntoolbox/conversion/utils.py=utf-8
 encoding//snntoolbox/datasets/utils.py=utf-8
 encoding//snntoolbox/parsing/model_libs/keras_input_lib.py=utf-8
