@@ -36,6 +36,8 @@ from abc import abstractmethod
 
 import keras
 import numpy as np
+import pprint
+from reportlab.graphics.charts.axes import _findMin
 
 
 class AbstractModelParser:
@@ -134,7 +136,8 @@ class AbstractModelParser:
             if layer_type == 'GlobalAveragePooling2D':
                 print("Replacing GlobalAveragePooling by AveragePooling "
                       "plus Flatten.")
-                pool_size = [layer.input_shape[-2], layer.input_shape[-1]]
+                #pool_size changed to fit (probably dodgy)
+                pool_size = [layer.input_shape[-3]-1, layer.input_shape[-2]-1]
                 self._layer_list.append(
                     {'layer_type': 'AveragePooling2D',
                      'name': self.get_name(layer, idx, 'AveragePooling2D'),
@@ -155,13 +158,22 @@ class AbstractModelParser:
             if layer_type not in snn_layers:
                 print("Skipping layer {}.".format(layer_type))
                 continue
-
+            
+            if layer_type == 'Reshape':
+                print("Parsing Reshape layer")
+                self._layer_list.append(
+                {'layer_type': 'Reshape',
+                 'name': self.get_name(layer, idx, 'Reshape'),
+                 'target_shape': layer.get_config()['target_shape'],
+                 'inbound': [self._layer_list[-1]['name']]})
+                continue
+            
             if not inserted_flatten:
                 inserted_flatten = self.try_insert_flatten(layer, idx, name_map)
                 idx += inserted_flatten
             
             layer_weight_shape = layer.get_weights()[0].shape
-            
+                        
             print("Parsing layer {}, weight shape: {}, output shape: {}.".format(layer_type, layer_weight_shape, layer_shape))
 
             if layer_type == 'MaxPooling2D' and \
@@ -645,9 +657,7 @@ class AbstractModelParser:
         parsed_model: keras.models.Model
             A Keras model, functionally equivalent to `input_model`.
         """
-        #needed for MobileNet
-        from keras.applications.mobilenet import DepthwiseConv2D
-        
+                
         img_input = keras.layers.Input(batch_shape=self.get_batch_input_shape(),
                                        name='input')
         parsed_layers = {'input': img_input}
@@ -656,13 +666,16 @@ class AbstractModelParser:
             # Replace 'parameters' key with Keras key 'weights'
             if 'parameters' in layer:
                 layer['weights'] = layer.pop('parameters')
+                #print ("weight shape: {}".format(layer['weights'][0].shape))
+                #print("bias shape: {}".format(layer['weights'][1].shape))
 
             # Add layer
             parsed_layer = getattr(keras.layers, layer.pop('layer_type'))
-
+            print("Parsing {}" .format(parsed_layer))
             inbound = [parsed_layers[inb] for inb in layer.pop('inbound')]
             if len(inbound) == 1:
                 inbound = inbound[0]
+            
             parsed_layers[layer['name']] = parsed_layer(**layer)(inbound)
 
         print("Compiling parsed model...\n")
@@ -735,14 +748,26 @@ def absorb_bn_parameters(weight, bias, mean, var_eps_sqrt_inv, gamma, beta,
     ndim = weight.ndim
     reduction_axes = list(range(ndim))
     del reduction_axes[axis]
+
     if sorted(reduction_axes) != list(range(ndim))[:-1]:
         broadcast_shape = [1] * ndim
+
         broadcast_shape[axis] = weight.shape[axis]
+
         var_eps_sqrt_inv = np.reshape(var_eps_sqrt_inv, broadcast_shape)
         gamma = np.reshape(gamma, broadcast_shape)
     bias_bn = beta + (bias - mean) * gamma * var_eps_sqrt_inv
-    weight_bn = weight * gamma * var_eps_sqrt_inv
+    
 
+    
+    if len(gamma*var_eps_sqrt_inv) != weight.shape[axis]:
+        print("mismatch, averaging gamma*var_eps_sqrt_inv")
+        correction = gamma*var_eps_sqrt_inv
+        avg_correction = np.mean(correction)
+        weight_bn = weight * avg_correction
+    else:
+        weight_bn = weight * gamma * var_eps_sqrt_inv
+        
     return weight_bn, bias_bn
 
 

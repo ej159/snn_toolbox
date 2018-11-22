@@ -60,10 +60,10 @@ print label
 
 
 mobilenet_model.summary()
-
+'''
 with open("mobilenet.json", "w") as text_file:
     text_file.write(mobilenet_model.to_json())
 mobilenet_model.save_weights('mobilenet.h5')
-
+'''
 
 

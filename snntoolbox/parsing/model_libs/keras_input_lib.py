@@ -67,10 +67,17 @@ class ModelParser(AbstractModelParser):
 
     def parse_convolution(self, layer, attributes):
         attributes['parameters'] = layer.get_weights()
+        if self.get_type(layer) == 'DepthwiseConv2D':
+            attributes['depth_multiplier'] = layer.get_config()['depth_multiplier']
+            input_dim = int(layer.input_shape[-1]) # assumes channels_last
+            filters = input_dim * attributes['depth_multiplier']   
+        else: 
+            filters = layer.filters
+            
         if layer.bias is None:
-            attributes['parameters'].append(np.zeros(layer.filters))
+            attributes['parameters'].append(np.zeros(filters))
             attributes['use_bias'] = True
-
+                
     def parse_pooling(self, layer, attributes):
         pass
 

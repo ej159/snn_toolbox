@@ -18,8 +18,8 @@ from __future__ import print_function, unicode_literals
 import numpy as np
 from future import standard_library
 from keras import backend as k
-from keras.layers import Dense, Flatten, AveragePooling2D, MaxPooling2D, Conv2D
-from keras.layers import Layer, Concatenate
+from keras.layers import Dense, Flatten, AveragePooling2D, MaxPooling2D, Conv2D, DepthwiseConv2D
+from keras.layers import Layer, Concatenate, Reshape
 
 from snntoolbox.parsing.utils import get_inbound_layers
 
@@ -544,6 +544,34 @@ class SpikeFlatten(Flatten):
         """Get class name."""
 
         return self.__class__.__name__
+    
+class SpikeReshape(Reshape):
+    """Spike reshape layer."""
+
+    def __init__(self, **kwargs):
+        kwargs.pop(str('config'))
+        Reshape.__init__(self, **kwargs)
+
+    def call(self, x, mask=None):
+
+        return k.cast(super(SpikeReshape, self).call(x), k.floatx())
+
+    @staticmethod
+    def get_time():
+
+        pass
+
+    @staticmethod
+    def reset(sample_idx):
+        """Reset layer variables."""
+
+        pass
+
+    @property
+    def class_name(self):
+        """Get class name."""
+
+        return self.__class__.__name__
 
 
 class SpikeDense(Dense, SpikeLayer):
@@ -599,6 +627,34 @@ class SpikeConv2D(Conv2D, SpikeLayer):
     def call(self, x, mask=None):
 
         return Conv2D.call(self, x)
+    
+    
+class SpikeDepthwiseConv2D(DepthwiseConv2D, SpikeLayer):
+    """Spike Depthwise 2D Convolution."""
+
+    def build(self, input_shape):
+        """Creates the layer weights.
+        Must be implemented on all layers that have weights.
+
+        Parameters
+        ----------
+
+        input_shape: Union[list, tuple, Any]
+            Keras tensor (future input to layer) or list/tuple of Keras tensors
+            to reference for weight shape computations.
+        """
+
+        DepthwiseConv2D.build(self, input_shape)
+        self.init_neurons(input_shape)
+
+        if self.config.getboolean('cell', 'bias_relaxation'):
+            self.b0 = k.variable(k.get_value(self.bias))
+            self.add_update([(self.bias, self.update_b())])
+
+    @spike_call
+    def call(self, x, mask=None):
+
+        return DepthwiseConv2D.call(self, x)
 
 
 class SpikeAveragePooling2D(AveragePooling2D, SpikeLayer):
