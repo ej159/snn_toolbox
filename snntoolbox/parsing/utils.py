@@ -1055,8 +1055,12 @@ def get_fanout(layer, config):
         elif 'Pool' in next_layer.name:
             fanout += 1
         elif 'Conv' in next_layer.name:
+            if 'DepthwiseConv' in next_layer.name:
+                output_channels = next_layer.depth_multiplier * next_layer.input_shape[-1] # assumes channel_last
+            else:
+                output_channels = next_layer.filters
             if has_stride_unity(next_layer):
-                fanout += np.prod(next_layer.kernel_size) * next_layer.filters
+                fanout += np.prod(next_layer.kernel_size) * output_channels
             else:
                 fanout += get_fanout_array(layer, next_layer)
 
