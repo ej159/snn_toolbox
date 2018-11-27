@@ -172,7 +172,12 @@ class AbstractModelParser:
                 inserted_flatten = self.try_insert_flatten(layer, idx, name_map)
                 idx += inserted_flatten
             
-            layer_weight_shape = layer.get_weights()[0].shape
+            layer_weights = layer.get_weights()
+            
+            if len(layer_weights) >1:
+                layer_weight_shape = layer_weights[0].shape
+            else:
+                layer_weight_shape = len(layer_weights)
                         
             print("Parsing layer {}, weight shape: {}, output shape: {}.".format(layer_type, layer_weight_shape, layer_shape))
 
