@@ -6,7 +6,7 @@ filename_ann = lenet5
 evaluate_ann = True
 
 [simulation]
-simulator = INI
+simulator = spiNNaker
 duration = 30
 num_to_test = 10
 batch_size = 1

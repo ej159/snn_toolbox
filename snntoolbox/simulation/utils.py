@@ -1145,17 +1145,23 @@ def build_convolution(layer, delay, transpose_kernel=False):
     i_offset: ndarray
         Flattened array containing the biases of all neurons in the ``layer``.
     """
-    if layer.get_type() == 'Conv2D':
+
+
+
+    if np.isscalar(layer.strides):
+        s = (layer.strides, layer.strides)
+    else:
+        s = layer.strides
+        
+    weights, biases = layer.get_weights()
+        
+    if get_type(layer) == 'Conv2D':
     
-        if not(np.isscalar(layer.strides)) and any([strides > 1 for strides in layer.strides]):
+        '''if not(np.isscalar(layer.strides)) and any([strides > 1 for strides in layer.strides]):
             raise NotImplementedError("Convolution layers with non-unity non-scalar strides"
                                       "are not yet implemented for this "
-                                      "simulator.")
-    
-        s = layer.strides
-    
-        weights, biases = layer.get_weights()
-    
+                                      "simulator.")'''
+
         if transpose_kernel:
             from keras.utils.conv_utils import convert_kernel
             weights = convert_kernel(weights)
@@ -1193,9 +1199,9 @@ def build_convolution(layer, delay, transpose_kernel=False):
         # Loop over output filters 'fout'
         for fout in range(weights.shape[3]):
             # iterating over the y dimension of the input
-            for y in range(y0, ny - y0, s):
+            for y in range(y0, ny - y0, s[1]):
                 # iterating over the x dimension of the input
-                for x in range(x0, nx - x0, s):
+                for x in range(x0, nx - x0, s[0]):
                     target = x - x0 + (y - y0) * mx + fout * mx * my
                     # Loop over input filters 'fin'
                     for fin in range(weights.shape[2]):
@@ -1214,16 +1220,12 @@ def build_convolution(layer, delay, transpose_kernel=False):
     
     # This could be tidied up
     
-    if layer.get_type() == 'DepthwiseConv2D':
+    if get_type(layer) == 'DepthwiseConv2D':
         
-        if not(np.isscalar(layer.strides)) and any([strides > 1 for strides in layer.strides]):
+        '''if not(np.isscalar(layer.strides)) and any([strides > 1 for strides in layer.strides]):
             raise NotImplementedError("Convolution layers with non-unity non-scalar strides"
                                       "are not yet implemented for this "
-                                      "simulator.")
-        
-        s = layer.strides
-    
-        weights, biases = layer.get_weights()
+                                      "simulator.")'''
     
         if transpose_kernel:
             from keras.utils.conv_utils import convert_kernel
@@ -1262,9 +1264,9 @@ def build_convolution(layer, delay, transpose_kernel=False):
         # Loop over input channels:
         for fout in range(weights.shape[3]):
             # iterating over the y dimension of the input
-            for y in range(y0, ny - y0, s):
+            for y in range(y0, ny - y0, s[1]):
                 # iterating over the x dimension of the input
-                for x in range(x0, nx - x0, s):
+                for x in range(x0, nx - x0, s[0]):
                     target = x - x0 + (y - y0) * mx + fout * mx * my
                     for fin in range(weights.shape[2]):
                         for k in range(-py, py + 1):
