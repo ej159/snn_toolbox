@@ -1124,7 +1124,7 @@ def build_convolution(layer, delay, transpose_kernel=False):
     Parameters
     ----------
 
-    layer: keras.layers.Conv2D
+    layer: keras.layers
         Parsed model layer.
     delay: float
         Synaptic delay.
@@ -1142,72 +1142,72 @@ def build_convolution(layer, delay, transpose_kernel=False):
     i_offset: ndarray
         Flattened array containing the biases of all neurons in the ``layer``.
     """
-    #if layer.get_type() == 'Conv2D':
+    if layer.get_type() == 'Conv2D':
     
-    if not(np.isscalar(layer.strides)) and any([strides > 1 for strides in layer.strides]):
-        raise NotImplementedError("Convolution layers with non-unity non-scalar strides"
-                                  "are not yet implemented for this "
-                                  "simulator.")
+        if not(np.isscalar(layer.strides)) and any([strides > 1 for strides in layer.strides]):
+            raise NotImplementedError("Convolution layers with non-unity non-scalar strides"
+                                      "are not yet implemented for this "
+                                      "simulator.")
     
-    s = layer.strides
-
-    weights, biases = layer.get_weights()
-
-    if transpose_kernel:
-        from keras.utils.conv_utils import convert_kernel
-        weights = convert_kernel(weights)
-
-    # Biases.
-    i_offset = np.empty(np.prod(layer.output_shape[1:]))
-    n = int(len(i_offset) / len(biases))
-    for i in range(len(biases)):
-        i_offset[i:(i + 1) * n] = biases[i]
-
-    nx = layer.input_shape[3]  # Width of feature map
-    ny = layer.input_shape[2]  # Height of feature map
-    kx, ky = layer.kernel_size  # Width and height of kernel
-    px = int((kx - 1) / 2)  # Zero-padding columns
-    py = int((ky - 1) / 2)  # Zero-padding rows
-
-    if layer.padding == 'valid':
-        # In padding 'valid', the original sidelength is
-        # reduced by one less than the kernel size.
-        mx = nx - kx + 1  # Number of columns in output filters
-        my = ny - ky + 1  # Number of rows in output filters
-        x0 = px
-        y0 = py
-    elif layer.padding == 'same':
-        mx = nx
-        my = ny
-        x0 = 0
-        y0 = 0
-    else:
-        raise NotImplementedError("Border_mode {} not supported".format(
-            layer.padding))
-
-    connections = []
-
-    # Loop over output filters 'fout'
-    for fout in range(weights.shape[3]):
-        # iterating over the y dimension of the input
-        for y in range(y0, ny - y0, s):
-            # iterating over the x dimension of the input
-            for x in range(x0, nx - x0, s):
-                target = x - x0 + (y - y0) * mx + fout * mx * my
-                # Loop over input filters 'fin'
-                for fin in range(weights.shape[2]):
-                    for k in range(-py, py + 1):
-                        if not 0 <= y + k < ny:
-                            continue
-                        source = x + (y + k) * nx + fin * nx * ny
-                        for l in range(-px, px + 1):
-                            if not 0 <= x + l < nx:
+        s = layer.strides
+    
+        weights, biases = layer.get_weights()
+    
+        if transpose_kernel:
+            from keras.utils.conv_utils import convert_kernel
+            weights = convert_kernel(weights)
+    
+        # Biases.
+        i_offset = np.empty(np.prod(layer.output_shape[1:]))
+        n = int(len(i_offset) / len(biases))
+        for i in range(len(biases)):
+            i_offset[i:(i + 1) * n] = biases[i]
+    
+        nx = layer.input_shape[3]  # Width of feature map
+        ny = layer.input_shape[2]  # Height of feature map
+        kx, ky = layer.kernel_size  # Width and height of kernel
+        px = int((kx - 1) / 2)  # Zero-padding columns
+        py = int((ky - 1) / 2)  # Zero-padding rows
+    
+        if layer.padding == 'valid':
+            # In padding 'valid', the original sidelength is
+            # reduced by one less than the kernel size.
+            mx = nx - kx + 1  # Number of columns in output filters
+            my = ny - ky + 1  # Number of rows in output filters
+            x0 = px
+            y0 = py
+        elif layer.padding == 'same':
+            mx = nx
+            my = ny
+            x0 = 0
+            y0 = 0
+        else:
+            raise NotImplementedError("Border_mode {} not supported".format(
+                layer.padding))
+    
+        connections = []
+    
+        # Loop over output filters 'fout'
+        for fout in range(weights.shape[3]):
+            # iterating over the y dimension of the input
+            for y in range(y0, ny - y0, s):
+                # iterating over the x dimension of the input
+                for x in range(x0, nx - x0, s):
+                    target = x - x0 + (y - y0) * mx + fout * mx * my
+                    # Loop over input filters 'fin'
+                    for fin in range(weights.shape[2]):
+                        for k in range(-py, py + 1):
+                            if not 0 <= y + k < ny:
                                 continue
-                            connections.append((source + l, target,
-                                                weights[py - k, px - l, fin,
-                                                        fout], delay))
-        echo('.')
-    print('')
+                            source = x + (y + k) * nx + fin * nx * ny
+                            for l in range(-px, px + 1):
+                                if not 0 <= x + l < nx:
+                                    continue
+                                connections.append((source + l, target,
+                                                    weights[py - k, px - l, fin,
+                                                            fout], delay))
+            echo('.')
+        print('')
     
     # This could be tidied up
     
