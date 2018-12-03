@@ -1,4 +1,5 @@
 eclipse.preferences.version=1
+encoding//snntoolbox/__init__.py=utf-8
 encoding//snntoolbox/bin/run.py=utf-8
 encoding//snntoolbox/bin/utils.py=utf-8
 encoding//snntoolbox/conversion/__init__.py=utf-8
@@ -8,7 +9,11 @@ encoding//snntoolbox/parsing/model_libs/keras_input_lib.py=utf-8
 encoding//snntoolbox/parsing/model_libs/lasagne_input_lib.py=utf-8
 encoding//snntoolbox/parsing/utils.py=utf-8
 encoding//snntoolbox/simulation/backends/inisim/temporal_mean_rate_tensorflow.py=utf-8
+encoding//snntoolbox/simulation/backends/inisim/ttfs.py=utf-8
 encoding//snntoolbox/simulation/target_simulators/INI_temporal_mean_rate_target_sim.py=utf-8
+encoding//snntoolbox/simulation/target_simulators/INI_temporal_pattern_target_sim.py=utf-8
+encoding//snntoolbox/simulation/target_simulators/INI_ttfs_corrective_target_sim.py=utf-8
+encoding//snntoolbox/simulation/target_simulators/INI_ttfs_target_sim.py=utf-8
 encoding//snntoolbox/simulation/target_simulators/MegaSim_target_sim.py=utf-8
 encoding//snntoolbox/simulation/target_simulators/Neuron_target_sim.py=utf-8
 encoding//snntoolbox/simulation/target_simulators/__init__.py=utf-8

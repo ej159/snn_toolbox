@@ -435,6 +435,9 @@ class AbstractSNN:
                 self.build_pooling(layer)
             elif layer_type == 'Flatten':
                 self.build_flatten(layer)
+                
+            '''elif layer_type == 'MaxPooling2D':
+            self.build_max_pooling(layer)'''
 
         print("Compiling spiking model...\n")
         self.compile()
@@ -1306,12 +1309,12 @@ def build_pooling(layer, delay):
         where :math:`k_x, k_y` are the dimensions of the pooling kernel.
     """
 
-    if layer.__class__.__name__ == 'MaxPooling2D':
+    '''if layer.__class__.__name__ == 'MaxPooling2D':
         import warnings
 
         warnings.warn("Layer type 'MaxPooling' not supported yet. " +
                       "Falling back on 'AveragePooling'.", RuntimeWarning)
-
+    '''
     nx = layer.input_shape[3]  # Width of feature map
     ny = layer.input_shape[2]  # Hight of feature map
     dx = layer.pool_size[1]  # Width of pool

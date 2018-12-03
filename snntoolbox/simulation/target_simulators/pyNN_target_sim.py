@@ -126,6 +126,41 @@ class SNN(AbstractSNN):
         self.connections.append(self.sim.Projection(
             self.layers[-2], self.layers[-1],
             self.sim.FromListConnector(self._conns, ['weight', 'delay'])))
+            
+    def build_max_pooling(self, layer):
+        from snntoolbox.simulation.utils import build_pooling
+
+        delay = self.config.getfloat('cell', 'delay')
+        self._conns = build_pooling(layer, delay*2)
+        self.connections.append(self.sim.Projection(
+            self.layers[-2], self.layers[-1],
+            self.sim.FromListConnector(self._conns, ['weight', 'delay'])))
+        
+        new_layers, new_connections = self.create_max_pooling_layers(self.layers[-2], self.layers[-1])
+        
+        #No other method adds new layers in this processs so this may break something
+        self.layers.extend(new_layers)
+        self.connections.extend(new_connections)
+        
+    def create_max_pooling_layers(self, input_layer, output_layer, passthrough_weight = 0.071, delay = 1):
+        neuron = self.sim.IF_cond_exp()
+        number_inputs = input_layer.size
+        #connecting input to output
+        #modify for multiple outputs
+        filter_proj = self.sim.Projection(input_layer, output_layer, self.sim.AllToAllConnector(), self.sim.StaticSynapse(weight=passthrough_weight, delay=delay*2))
+        inh_pop = self.sim.Population(number_inputs, neuron, label="inh_pop")
+        
+        #forward inhibitory connections
+        inh_connections = [(i, j, passthrough_weight, delay) for j in range(number_inputs) for i in range(number_inputs) if i != j]
+        input_inh_proj = self.sim.Projection(input_layer, inh_pop, self.sim.FromListConnector(inh_connections), self.sim.StaticSynapse())
+        inh_output_proj = self.sim.Projection(inh_pop, output_layer, self.sim.OneToOneConnector(), self.sim.StaticSynapse(weight=passthrough_weight/number_inputs, delay=delay), receptor_type = "inhibitory")
+            
+        
+        new_layers = [inh_pop]
+        new_connections = [filter_proj, input_inh_proj, inh_output_proj]
+        
+        return new_layers, new_connections
+        
 
     def compile(self):
 

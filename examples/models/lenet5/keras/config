@@ -4,6 +4,7 @@ filename_ann = lenet5
 
 [tools]
 evaluate_ann = True
+normalize  = True
 
 [simulation]
 simulator = spiNNaker
@@ -13,7 +14,13 @@ batch_size = 1
 keras_backend = theano
 
 [input]
-poisson_input = False
+poisson_input = True
+
+[conversion]
+max2avg_pool = False
+
+[normalization]
+percentile = 90
 
 [output]
 log_vars = {'spiketrains_n_b_l_t'}
