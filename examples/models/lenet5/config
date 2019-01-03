@@ -4,7 +4,7 @@ filename_ann = lenet5
 
 [tools]
 evaluate_ann = True
-normalize  = False
+normalize  = True
 
 [simulation]
 simulator = INI
@@ -17,7 +17,7 @@ keras_backend = theano
 poisson_input = True
 
 [conversion]
-max2avg_pool = True
+max2avg_pool = False
 
 [normalization]
 percentile = 99.9

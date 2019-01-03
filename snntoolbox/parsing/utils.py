@@ -1235,9 +1235,16 @@ def get_custom_activations_dict():
     Import all implemented custom activation functions so they can be used when
     loading a Keras model.
     """
-
+    
+    
+    def noisy_softplus(x, k=0.17, sigma=0.5):
+        from keras import backend as K
+        return sigma*k*K.softplus(x/(sigma*k))
+    
+    
+    
     from snntoolbox.utils.utils import binary_sigmoid, binary_tanh, ClampedReLU
-
+    
     # Todo: We should be able to load a different activation for each layer.
     # Need to remove this hack:
     activation_str = 'relu_Q1.4'
@@ -1246,4 +1253,5 @@ def get_custom_activations_dict():
     return {'binary_sigmoid': binary_sigmoid,
             'binary_tanh': binary_tanh,
             'clamped_relu': ClampedReLU(),  # Todo: This should work regardless of the specific attributes of the ClampedReLU class used during training.
+            'noisy_softplus': noisy_softplus,
             activation_str: activation}

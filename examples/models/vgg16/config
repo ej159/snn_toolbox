@@ -9,7 +9,7 @@ datagen_kwargs = {'preprocessing_function': 'helper_functions'}
 dataflow_kwargs = {'target_size': (224, 224), 'shuffle': True}
 
 [simulation]
-simulator = spiNNaker
+simulator = INI
 duration = 400
 batch_size = 1
 num_to_test = 2
