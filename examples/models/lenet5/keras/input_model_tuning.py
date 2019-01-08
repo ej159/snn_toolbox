@@ -55,11 +55,12 @@ for layer in model.layers:
     print(layerconf)
     
     #changing activation
-    if hasattr(layer, 'activation') and layer.get_config()['activation'] != 'relu':
+    if hasattr(layer, 'activation') and layer.activation != 'relu':
         layerconf['activation'] = 'relu'
      
     #removing bias
     if hasattr(layer, 'use_bias') and layerconf['use_bias']:
+        print("Found biased layer")
         layerconf['use_bias'] = False
         weights, biases = layer.get_weights()
         '''weights[weights<0.0] = 1.0
@@ -71,7 +72,7 @@ for layer in model.layers:
     if hasattr(layer, 'kernel_constraint'):
         layerconf['kernel_constraint'] = keras.constraints.NonNeg()
      '''
-    
+    '''
     #changing maxpooling to avgpooling
     if type(layer).__name__ == 'MaxPooling2D':
         layerconf['name'] = "avg_pooling2d_" + str(ap_counter)
@@ -79,8 +80,8 @@ for layer in model.layers:
         layer = keras.layers.AveragePooling2D.from_config(layerconf)
     else:
         layer = type(layer).from_config(layerconf)
-    
-    new_model.add(layer)
+    '''
+    new_model.add(layer.from_config(layerconf))
 
 model = new_model
 
@@ -89,11 +90,14 @@ model.summary()
 model.compile(loss=keras.losses.binary_crossentropy,
               optimizer=keras.optimizers.Adam(), metrics=['accuracy'])
 
+for layer in model.layers:
+    if hasattr(layer, 'activation'):
+        print(layer.activation)
 
 score = model.evaluate(x_test, y_test, batch_size = 1, verbose=1)
 print('Pre-retrain Test loss:', score[0])
 print('Pre-retrain Test accuracy:', score[1])
-
+'''
 epochs = 2
 print('Retraining network for %d epochs...' % epochs)
 
@@ -110,5 +114,5 @@ print('Evaluating retrained network...')
 score = model.evaluate(x_test, y_test, batch_size = 1, verbose=1)
 print('Retrained Test loss:', score[0])
 print('Retrained Test accuracy:', score[1])
-
+'''
 model.save("lenet5_retrained.h5")

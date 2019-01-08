@@ -1,26 +1,28 @@
 [paths]
 dataset_path = %(path_wd)s/../../../datasets/mnist
-filename_ann = lenet5
+filename_ann = lenet5_retrained
 
 [tools]
 evaluate_ann = True
 normalize  = False
 
 [simulation]
-simulator = INI
-duration = 30
+simulator = spiNNaker
+duration = 5000
+dt = 0.1
 num_to_test = 10
 batch_size = 1
 keras_backend = theano
 
 [input]
 poisson_input = True
+input_rate = 1000
 
 [conversion]
 max2avg_pool = True
 
 [normalization]
-percentile = 99.9
+percentile = 99.99
 
 [output]
 log_vars = {'spiketrains_n_b_l_t'}
