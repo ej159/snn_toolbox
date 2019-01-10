@@ -3,6 +3,10 @@ dataset_path = %(path_wd)s/../../datasets/imagenet/validation
 filename_ann = mobilenet 
 class_idx_path = %(dataset_path)s/../imagenet_class_index_1000.json
 
+[tools]
+evaluate_ann = True
+normalize  = False
+
 [input]
 dataset_format = jpg
 datagen_kwargs = {'preprocessing_function': 'helper_functions'}
@@ -17,3 +21,7 @@ keras_backend = tensorflow
 
 [normalization]
 percentile = 99 
+
+[output]
+log_vars = {'spiketrains_n_b_l_t'}
+plot_vars = {'input_image','spikerates'}

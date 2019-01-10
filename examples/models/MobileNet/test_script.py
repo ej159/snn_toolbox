@@ -4,7 +4,7 @@ import os
 
 #path to snn_toolbox
 home = expanduser("~")
-sys.path.append(home +'/git/snn_toolbox/scripts/')
+sys.path.append(home +'/git/snn_toolbox/')
 import snntoolbox.bin.utils
 
 #lenet_5_filepath = '/home/edwardjones/git/snn_toolbox/examples/models/lenet5/keras/config_spinnaker'

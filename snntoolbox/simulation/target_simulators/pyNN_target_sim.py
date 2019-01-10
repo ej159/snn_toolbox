@@ -171,7 +171,7 @@ class SNN(AbstractSNN):
         if self._poisson_input:
             rates = kwargs[str('x_b_l')].flatten()
             for neuron_idx, neuron in enumerate(self.layers[0]):
-                neuron.rate = rates[neuron_idx] / self.rescale_fac * 1000
+                neuron.rate = rates[neuron_idx] * np.max(rates) * self.rescale_fac
         elif self._dataset_format == 'aedat':
             raise NotImplementedError
         else:

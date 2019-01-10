@@ -115,4 +115,4 @@ score = model.evaluate(x_test, y_test, batch_size = 1, verbose=1)
 print('Retrained Test loss:', score[0])
 print('Retrained Test accuracy:', score[1])
 '''
-model.save("lenet5_retrained.h5")
+#model.save("lenet5_retrained.h5")
