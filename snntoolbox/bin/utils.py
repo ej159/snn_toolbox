@@ -525,7 +525,7 @@ def initialize_simulator(config):
         # must call the setup() function. Calling setup() a second time
         # resets the simulator entirely, destroying any network that may
         # have been created in the meantime."
-        sim.setup(timestep=config.getfloat('simulation', 'dt'))
+        sim.setup(timestep=config.getfloat('simulation', 'dt'), time_scale_factor=100)
         return sim
     if simulator == 'brian2':
         return import_module('brian2')

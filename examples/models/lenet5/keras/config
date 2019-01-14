@@ -4,13 +4,17 @@ filename_ann = lenet5_retrained
 runlabel = spiNNaker_play
 
 [tools]
-evaluate_ann = True
-normalize  = False
+evaluate_ann = False
+normalize  = True
 
 [simulation]
 simulator = spiNNaker
+<<<<<<< HEAD
 duration = 6000
 dt = 1
+=======
+duration = 30
+>>>>>>> refs/heads/2
 num_to_test = 1
 batch_size = 1
 keras_backend = theano
