@@ -1,16 +1,16 @@
 [paths]
 dataset_path = %(path_wd)s/../../../datasets/mnist
 filename_ann = lenet5_retrained
+runlabel = spiNNaker_play
 
 [tools]
-evaluate_ann = True
-normalize  = False
+evaluate_ann = False
+normalize  = True
 
 [simulation]
 simulator = spiNNaker
-duration = 5000
-dt = 0.1
-num_to_test = 10
+duration = 30
+num_to_test = 1
 batch_size = 1
 keras_backend = theano
 
@@ -26,4 +26,4 @@ percentile = 99.99
 
 [output]
 log_vars = {'spiketrains_n_b_l_t'}
-plot_vars = {'spikerates'}
+plot_vars = {'input_image', 'spikerates'}

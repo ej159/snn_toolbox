@@ -2,7 +2,7 @@
 """Building and simulating spiking neural networks using SpiNNaker.
 Everything is done by PyNN but loading and saving is disabled in utils as per Brian2
 """
-
+from __future__ import division
 import warnings
 from future import standard_library
 # noinspection PyUnresolvedReferences
@@ -38,6 +38,32 @@ class SNN(PyNNSNN):
         
         print(vars_to_record)
         
+        
+    def simulate(self, **kwargs):
+
+        if self._poisson_input:
+            rates = kwargs[str('x_b_l')].flatten()
+            print(rates.max())
+            rates = rates / self.rescale_fac * 1000
+            print(rates.max())
+            self.layers[0].set(rate=rates)
+        elif self._dataset_format == 'aedat':
+            raise NotImplementedError
+        else:
+            constant_input_currents = kwargs[str('x_b_l')].flatten()
+            try:
+                for neuron_idx, neuron in enumerate(self.layers[0]):
+                    # TODO: Implement constant input currents.
+                    neuron.current = constant_input_currents[neuron_idx]
+            except AttributeError:
+                raise NotImplementedError
+
+        self.sim.set_number_of_neurons_per_core(self.sim.IF_curr_exp, 32)
+        self.sim.run(self._duration - self._dt)
+
+        output_b_l_t = self.get_recorded_vars(self.layers)
+
+        return output_b_l_t
     
     def get_vars_to_record(self):
         """Get variables to record during simulation.
