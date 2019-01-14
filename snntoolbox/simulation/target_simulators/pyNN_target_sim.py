@@ -101,9 +101,7 @@ class SNN(AbstractSNN):
         for i in range(weights.shape[0]):
             for j in range(weights.shape[1]):
                 self._conns.append((i, j, weights[i, j], delay))
-        self.connections.append(self.sim.Projection(
-            self.layers[-2], self.layers[-1],
-            self.sim.FromListConnector(self._conns, ['weight', 'delay'])))
+        self.set_connections()
 
     def build_convolution(self, layer):
         from snntoolbox.simulation.utils import build_convolution
@@ -114,20 +112,17 @@ class SNN(AbstractSNN):
         self._conns, self._biases = build_convolution(layer, delay,
                                                       transpose_kernel)
         self.set_biases()
-        self.connections.append(self.sim.Projection(
-            self.layers[-2], self.layers[-1],
-            self.sim.FromListConnector(self._conns, ['weight', 'delay'])))
+        self.set_connections()
+
 
     def build_pooling(self, layer):
         from snntoolbox.simulation.utils import build_pooling
 
         delay = self.config.getfloat('cell', 'delay')
         self._conns = build_pooling(layer, delay)
-        self.connections.append(self.sim.Projection(
-            self.layers[-2], self.layers[-1],
-            self.sim.FromListConnector(self._conns, ['weight', 'delay'])))
+        self.set_connections()
             
-    def build_max_pooling(self, layer):
+    '''def build_max_pooling(self, layer):
         from snntoolbox.simulation.utils import build_pooling
 
         delay = self.config.getfloat('cell', 'delay')
@@ -160,7 +155,7 @@ class SNN(AbstractSNN):
         new_connections = [filter_proj, input_inh_proj, inh_output_proj]
         
         return new_layers, new_connections
-        
+        '''
 
     def compile(self):
 
@@ -171,7 +166,7 @@ class SNN(AbstractSNN):
         if self._poisson_input:
             rates = kwargs[str('x_b_l')].flatten()
             for neuron_idx, neuron in enumerate(self.layers[0]):
-                neuron.rate = rates[neuron_idx] * np.max(rates) * self.rescale_fac
+                neuron.rate = rates[neuron_idx] / self.rescale_fac * 1000
         elif self._dataset_format == 'aedat':
             raise NotImplementedError
         else:
@@ -254,6 +249,30 @@ class SNN(AbstractSNN):
         warnings.warn("Biases are implemented but might have no effect. "
                       "Please check!", RuntimeWarning)
         self.layers[-1].set(i_offset=self._biases * self._dt)
+        
+    def set_connections(self):
+        """Set connection weight.
+        
+        Notes
+        -----
+        The case where weight is 0 has been ignored, though this may need
+        to be considered in some applications. 
+                
+        """
+        # setting excitatory connections   
+        excitatories = [i for i in self._conns if i[2]>0.0]
+        if len(excitatories) != 0:
+            self.connections.append(self.sim.Projection(
+                self.layers[-2], self.layers[-1],
+                self.sim.FromListConnector(excitatories, column_names=['i', 'j', 'weight', 'delay']), receptor_type='excitatory'))
+            
+        # setting inhibitory connections
+        inhibitories = [(i[0],i[1],abs(i[2]),i[3]) for i in self._conns if i[2]<0.0]
+        
+        if len(inhibitories) != 0:
+            self.connections.append(self.sim.Projection(
+                self.layers[-2], self.layers[-1],
+                self.sim.FromListConnector(inhibitories, column_names=['i', 'j', 'weight', 'delay']), receptor_type='inhibitory'))
 
     def get_vars_to_record(self):
         """Get variables to record during simulation.

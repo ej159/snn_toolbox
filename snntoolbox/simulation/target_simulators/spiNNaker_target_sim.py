@@ -5,6 +5,7 @@ Everything is done by PyNN but loading and saving is disabled in utils as per Br
 from __future__ import division
 import warnings
 from future import standard_library
+import numpy as np
 # noinspection PyUnresolvedReferences
 from snntoolbox.simulation.target_simulators.pyNN_target_sim import SNN as PyNNSNN
 
@@ -34,13 +35,9 @@ class SNN(PyNNSNN):
         # contain the networks output (classification guess).
         if 'spikes' not in vars_to_record:
             vars_to_record.append(str('spikes'))
-            self.layers[-1].record(vars_to_record)
-        
-        print(vars_to_record)
-        
+            self.layers[-1].record(vars_to_record)        
         
     def simulate(self, **kwargs):
-
         if self._poisson_input:
             rates = kwargs[str('x_b_l')].flatten()
             print(rates.max())
@@ -60,7 +57,6 @@ class SNN(PyNNSNN):
 
         self.sim.set_number_of_neurons_per_core(self.sim.IF_curr_exp, 32)
         self.sim.run(self._duration - self._dt)
-
         output_b_l_t = self.get_recorded_vars(self.layers)
 
         return output_b_l_t

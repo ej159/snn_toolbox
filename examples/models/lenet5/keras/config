@@ -1,33 +1,39 @@
 [paths]
 dataset_path = %(path_wd)s/../../../datasets/mnist
 filename_ann = lenet5_retrained
-runlabel = spiNNaker_play
-
+runlabel = spiNNaker_fixed_10_trials
 [tools]
-evaluate_ann = False
-normalize  = True
+evaluate_ann = True
+normalize  = False
 
 [simulation]
 simulator = spiNNaker
-<<<<<<< HEAD
-duration = 6000
-dt = 1
-=======
 duration = 30
->>>>>>> refs/heads/2
-num_to_test = 1
+dt = 1
+num_to_test = 10
 batch_size = 1
 keras_backend = theano
 
 [input]
 poisson_input = True
-input_rate = 100
+input_rate = 1000
 
 [conversion]
 max2avg_pool = True
 
 [normalization]
 percentile = 99.99
+
+[cell]
+;v_rest = -65.0
+;cm = 1.0
+;tau_m = 20.0
+;tau_refrac = 0.0
+;tau_syn_E = 5.0
+;tau_syn_I = 5.0
+;i_offset = 0.0
+;v_reset = -65.0
+;v_thresh = -50.0
 
 [output]
 log_vars = {'spiketrains_n_b_l_t'}
