@@ -1,13 +1,14 @@
 [paths]
 dataset_path = %(path_wd)s/../../../datasets/mnist
-filename_ann = lenet5_retrained
-runlabel = spiNNaker_fixed_10_trials
+filename_ann = lenet5
+runlabel = INI_full_lenet5_x10_nonPoisson
+
 [tools]
-evaluate_ann = True
+evaluate_ann = False
 normalize  = False
 
 [simulation]
-simulator = spiNNaker
+simulator = INI
 duration = 30
 dt = 1
 num_to_test = 10
@@ -15,7 +16,7 @@ batch_size = 1
 keras_backend = theano
 
 [input]
-poisson_input = True
+poisson_input = False
 input_rate = 1000
 
 [conversion]

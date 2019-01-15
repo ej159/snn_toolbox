@@ -40,9 +40,7 @@ class SNN(PyNNSNN):
     def simulate(self, **kwargs):
         if self._poisson_input:
             rates = kwargs[str('x_b_l')].flatten()
-            print(rates.max())
             rates = rates / self.rescale_fac * 1000
-            print(rates.max())
             self.layers[0].set(rate=rates)
         elif self._dataset_format == 'aedat':
             raise NotImplementedError

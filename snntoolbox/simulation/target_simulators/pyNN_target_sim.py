@@ -111,6 +111,7 @@ class SNN(AbstractSNN):
             self.config.get('simulation', 'keras_backend') == 'tensorflow'
         self._conns, self._biases = build_convolution(layer, delay,
                                                       transpose_kernel)
+        self._biases = np.array(self._biases, 'float64')
         self.set_biases()
         self.set_connections()
 
@@ -248,7 +249,9 @@ class SNN(AbstractSNN):
 
         warnings.warn("Biases are implemented but might have no effect. "
                       "Please check!", RuntimeWarning)
-        self.layers[-1].set(i_offset=self._biases * self._dt)
+        self._biases = self._biases / 1000
+        print(self._biases)
+        self.layers[-1].set(i_offset=self._biases)
         
     def set_connections(self):
         """Set connection weight.

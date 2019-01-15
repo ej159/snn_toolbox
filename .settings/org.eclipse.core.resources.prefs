@@ -9,6 +9,7 @@ encoding//snntoolbox/parsing/model_libs/keras_input_lib.py=utf-8
 encoding//snntoolbox/parsing/model_libs/lasagne_input_lib.py=utf-8
 encoding//snntoolbox/parsing/utils.py=utf-8
 encoding//snntoolbox/simulation/backends/inisim/temporal_mean_rate_tensorflow.py=utf-8
+encoding//snntoolbox/simulation/backends/inisim/temporal_mean_rate_theano.py=utf-8
 encoding//snntoolbox/simulation/backends/inisim/ttfs.py=utf-8
 encoding//snntoolbox/simulation/target_simulators/INI_temporal_mean_rate_target_sim.py=utf-8
 encoding//snntoolbox/simulation/target_simulators/INI_temporal_pattern_target_sim.py=utf-8

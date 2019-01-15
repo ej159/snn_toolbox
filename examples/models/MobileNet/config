@@ -13,10 +13,10 @@ datagen_kwargs = {'preprocessing_function': 'helper_functions'}
 dataflow_kwargs = {'target_size': (224, 224), 'shuffle': True}
 
 [simulation]
-simulator = INI 
+simulator = spiNNaker
 duration = 400
 batch_size = 10
-num_to_test = 10
+num_to_test = 1
 keras_backend = tensorflow
 
 [normalization]
