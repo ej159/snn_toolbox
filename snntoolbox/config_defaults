@@ -60,6 +60,7 @@ reset_between_nth_sample = 1
 top_k = 1
 keras_backend = theano
 early_stopping = False
+time_scale_factor = 10
 
 [cell]
 v_thresh = 1
