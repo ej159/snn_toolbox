@@ -19,7 +19,7 @@ with CustomObjectScope({'relu6': keras.layers.ReLU(6.),'DepthwiseConv2D': keras.
     mobilenet_model = load_model('mobilenet.h5')'''
 
 #Load the MobileNet model
-mobilenet_model = mobilenetv2.MobileNetV2(weights='imagenet') 
+mobilenet_model = mobilenetv2.MobileNetV2(weights='imagenet', alpha=0.35)
 mobilenet_model.summary()
 
  
@@ -57,6 +57,10 @@ predictions = mobilenet_model.predict(processed_image)
 # We will get top 5 predictions which is the default
 label = decode_predictions(predictions)
 print label
+
+mobilenetv2.summary()
+
+
 
 with open("mobilenetv2.json", "w") as text_file:
     text_file.write(mobilenet_model.to_json())

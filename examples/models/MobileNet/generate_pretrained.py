@@ -88,7 +88,7 @@ class RestoreCkptCallback(keras.callbacks.Callback):
             self.loader.restore(self.sess, self.pretrained_file)
             print('load weights: OK.')
 '''    
-mobilenet_model = keras.applications.mobilenet.MobileNet(None)
+mobilenet_model = keras.applications.mobilenet.MobileNet(alpha=0.25)
 mobilenet_model.compile(loss='categorical_crossentropy', optimizer='adam')
 mobilenet_model.summary
 #restore_ckpt_callback = RestoreCkptCallback(pretrained_file=checkpoint_path) 
@@ -131,10 +131,10 @@ print label
 
 
 mobilenet_model.summary()
-'''
+
 with open("mobilenet.json", "w") as text_file:
     text_file.write(mobilenet_model.to_json())
 mobilenet_model.save_weights('mobilenet.h5')
-'''
+
 
 

@@ -21,7 +21,7 @@ with CustomObjectScope({'relu6': keras.layers.ReLU(6.),'DepthwiseConv2D': keras.
 
 #Load the MobileNet model
 nasnet_mobile_model = nasnet.NASNetMobile(weights='imagenet') 
-
+'''
  
 filename = home + '/git/PyNN8Examples/examples/ANN_Conversion/images/hotairballoon.jpg'
 # load an image in PIL format
@@ -57,6 +57,8 @@ print predictions
 # We will get top 5 predictions which is the default
 label = decode_predictions(predictions)
 print label
+'''
+nasnet_mobile_model.summary()
 
 with open("nasnet_mobile.json", "w") as text_file:
     text_file.write(nasnet_mobile_model.to_json())
