@@ -13,12 +13,12 @@ standard_library.install_aliases()
 
 class SNN(PyNNSNN):
 
-    def save(self, path, filename):
+    '''def save(self, path, filename):
         warnings.warn("Saving SpiNNaker spiking model to disk is not yet implemented.", RuntimeWarning)
 
     def load(self, path, filename):
         raise NotImplementedError("Loading SpiNNaker spiking model from disk is not yet implemented.")
-    
+    '''
     def init_cells(self):
 
         vars_to_record = self.get_vars_to_record()

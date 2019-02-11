@@ -18,6 +18,7 @@ from six.moves import cPickle
 
 from snntoolbox.utils.utils import confirm_overwrite
 from snntoolbox.simulation.utils import AbstractSNN
+from __builtin__ import getattr
 
 standard_library.install_aliases()
 
@@ -372,15 +373,17 @@ class SNN(AbstractSNN):
             labels.append(population.label)
             data = {}
             for variable in variables:
-                data[variable] = getattr(population, variable)
-            data['celltype'] = population.celltype.describe()
+                if hasattr(population, variable):
+                    data[variable] = getattr(population,variable)
+            if hasattr(population.celltype, 'describe'): 
+                data['celltype'] = population.celltype.describe()
             if population.label != 'InputLayer':
                 data['i_offset'] = population.get('i_offset')
             s[population.label] = data
         s['labels'] = labels  # List of population labels describing the net.
         s['variables'] = variables  # List of variable names.
         s['size'] = len(self.layers)  # Number of populations in assembly.
-        cPickle.dump(s, open(filepath, 'wb'))
+        cPickle.dump(s, open(filepath, 'wb'), -1)
 
     def save_connections(self, path):
         """Write parameters of a neural network to disk.
