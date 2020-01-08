@@ -8,6 +8,7 @@ from __future__ import division, absolute_import
 from __future__ import print_function, unicode_literals
 
 import os
+import re
 import sys
 
 import keras
@@ -48,6 +49,7 @@ class SNN(AbstractSNN):
         self._input_images = None
         self._binary_activation = None
         self.avg_rate = None
+        self._input_spikecount = None
 
     @property
     def is_parallelizable(self):
@@ -101,19 +103,36 @@ class SNN(AbstractSNN):
 
     def compile(self):
 
+        def remove_name_counter(name_in):
+            splits = str(name_in).split('_')
+            name_out = splits[0] + '_' + splits[1]
+            if len(splits) == 3:
+                name_out += re.sub('\d+/', '/', splits[2])
+            return name_out
+
         self.snn = keras.models.Model(
             self._input_images,
             self._spiking_layers[self.parsed_model.layers[-1].name])
         self.snn.compile('sgd', 'categorical_crossentropy', ['accuracy'])
-        self.snn.set_weights(self.parsed_model.get_weights())
+        parameter_map = {remove_name_counter(p.name): v for p, v in
+                         zip(self.parsed_model.weights,
+                             self.parsed_model.get_weights())}
+        count = 0
+        for p in self.snn.weights:
+            name = remove_name_counter(p.name)
+            if name in parameter_map:
+                keras.backend.set_value(p, parameter_map[name])
+                count += 1
+        assert count == len(parameter_map), "Not all weights have been " \
+                                            "transferred from ANN to SNN."
         for layer in self.snn.layers:
             if hasattr(layer, 'bias'):
                 # Adjust biases to time resolution of simulator.
                 bias = keras.backend.get_value(layer.bias) * self._dt
                 keras.backend.set_value(layer.bias, bias)
                 if self.config.getboolean('cell', 'bias_relaxation'):
-                    keras.backend.set_value(layer.b0,
-                                            keras.backend.get_value(layer.bias))
+                    keras.backend.set_value(
+                        layer.b0, keras.backend.get_value(layer.bias))
 
     def simulate(self, **kwargs):
 
@@ -188,7 +207,8 @@ class SNN(AbstractSNN):
             if self._poisson_input or self._dataset_format == 'aedat':
                 if self.synaptic_operations_b_t is not None:
                     self.synaptic_operations_b_t[:, sim_step_int] += \
-                        get_layer_synaptic_operations(input_b_l, self.fanout[0])
+                        get_layer_synaptic_operations(input_b_l,
+                                                      self.fanout[0])
             else:
                 if self.neuron_operations_b_t is not None:
                     if sim_step_int == 0:
@@ -209,7 +229,8 @@ class SNN(AbstractSNN):
                 sys.stdout.flush()
 
         if self._dataset_format == 'aedat':
-            remaining_events = len(kwargs[str('dvs_gen')].event_deques_batch[0])
+            remaining_events = \
+                len(kwargs[str('dvs_gen')].event_deques_batch[0])
         elif self._poisson_input and self._num_poisson_events_per_sample > 0:
             remaining_events = self._num_poisson_events_per_sample - \
                 self._input_spikecount
@@ -217,8 +238,8 @@ class SNN(AbstractSNN):
             remaining_events = 0
         if remaining_events > 0:
             print("SNN Toolbox WARNING: Simulation of current batch finished, "
-                  "but {} input events were not processed. Consider increasing "
-                  "the simulation time.".format(remaining_events))
+                  "but {} input events were not processed. Consider "
+                  "increasing the simulation time.".format(remaining_events))
 
         self.avg_rate /= self.batch_size * np.sum(self.num_neurons) * \
             actual_num_timesteps
@@ -257,9 +278,9 @@ class SNN(AbstractSNN):
                 "Loading SNN for INIsim is not supported yet.")
             # Loading does not work anymore because the configparser object
             # needed by the custom layers is not stored when saving the model.
-            # Could be implemented by overriding Keras' save / load methods, but
-            # since converting even large Keras models from scratch is so fast,
-            # there's really no need.
+            # Could be implemented by overriding Keras' save / load methods,
+            # but since converting even large Keras models from scratch is so
+            # fast, there's really no need.
 
     def get_poisson_frame_batch(self, x_b_l):
         """Get a batch of Poisson input spikes.

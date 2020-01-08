@@ -5,9 +5,8 @@
 """
 
 import numpy as np
-
+import keras.backend as k
 from snntoolbox.parsing.utils import AbstractModelParser
-import keras.backend as K
 
 
 class ModelParser(AbstractModelParser):
@@ -20,7 +19,6 @@ class ModelParser(AbstractModelParser):
         return get_type(layer)
 
     def get_batchnorm_parameters(self, layer):
-        import keras.backend as k
         mean = k.get_value(layer.moving_mean)
         var = k.get_value(layer.moving_variance)
         var_eps_sqrt_inv = 1 / np.sqrt(var + layer.epsilon)
@@ -57,35 +55,43 @@ class ModelParser(AbstractModelParser):
         return layer.output_shape
 
     def parse_sparse(self, layer, attributes):
-        # attributes['mask'] = K.get_value(layer.mask)
+        #attributes['mask'] = K.get_value(layer.mask)
         return self.parse_dense(layer, attributes)
 
     def parse_dense(self, layer, attributes):
-        attributes['parameters'] = layer.get_weights()
+        attributes['parameters'] = list(layer.get_weights())
         if layer.bias is None:
-            attributes['parameters'].append(np.zeros(layer.output_shape[-1]))
+            attributes['parameters'].insert(
+                1, np.zeros(layer.output_shape[1]))
+            attributes['parameters'] = tuple(attributes['parameters'])
             attributes['use_bias'] = True
 
     def parse_sparse_convolution(self, layer, attributes):
-        # attributes['mask'] = K.get_value(layer.mask)
+        #attributes['mask'] = K.get_value(layer.mask)
         return self.parse_convolution(layer, attributes)
 
     def parse_convolution(self, layer, attributes):
-        attributes['parameters'] = layer.get_weights()
+        attributes['parameters'] = list(layer.get_weights())
         if layer.bias is None:
-            attributes['parameters'].append(np.zeros(layer.filters))
+            attributes['parameters'].insert(1, np.zeros(layer.filters))
+            attributes['parameters'] = tuple(attributes['parameters'])
             attributes['use_bias'] = True
+        assert layer.data_format == k.image_data_format(), (
+            "The input model was setup with image data format '{}', but your "
+            "keras config file expects '{}'.".format(layer.data_format,
+                                                     k.image_data_format()))
 
     def parse_sparse_depthwiseconvolution(self, layer, attributes):
-        # attributes['mask'] = K.get_value(layer.mask)
+        #attributes['mask'] = K.get_value(layer.mask)
         return self.parse_depthwiseconvolution(layer, attributes)
 
     def parse_depthwiseconvolution(self, layer, attributes):
-        # Assumes channels last
-        attributes['parameters'] = layer.get_weights()
+        attributes['parameters'] = list(layer.get_weights())
         if layer.bias is None:
-            attributes['parameters'].append(np.zeros(layer.depth_multiplier *
-                                                     layer.input_shape[-1]))
+            a = 1 if layer.data_format == 'channels_first' else -1
+            attributes['parameters'].insert(1, np.zeros(
+                layer.depth_multiplier * layer.input_shape[a]))
+            attributes['parameters'] = tuple(attributes['parameters'])
             attributes['use_bias'] = True
 
     def parse_pooling(self, layer, attributes):
@@ -148,7 +154,7 @@ def load(path, filename, **kwargs):
         model = models.model_from_json(open(filepath + '.json').read())
         try:
             model.load_weights(filepath + '.h5')
-        except:
+        except Exception:            # Allows h5 files without a .h5 extension to be loaded
             model.load_weights(filepath)
         # With this loading method, optimizer and loss cannot be recovered.
         # Could be specified by user, but since they are not really needed
@@ -167,7 +173,8 @@ def load(path, filename, **kwargs):
             get_custom_activations_dict(filepath_custom_objects),
             get_custom_layers_dict())
         if "config" in kwargs.keys():
-            custom_dicts_path = kwargs['config'].get('paths', 'filepath_custom_objects')
+            custom_dicts_path = kwargs['config'].get(
+                'paths', 'filepath_custom_objects')
             custom_dicts = assemble_custom_dict(
                 custom_dicts,
                 get_custom_activations_dict(custom_dicts_path))
@@ -180,8 +187,8 @@ def load(path, filename, **kwargs):
             model = models.load_model(
                 filepath,
                 custom_dicts)
-        # model.compile(model.optimizer, model.loss,
-        #               ['accuracy', metrics.top_k_categorical_accuracy])
+        model.compile(model.optimizer, model.loss,
+                      ['accuracy', metrics.top_k_categorical_accuracy])
 
     model.summary()
     return {'model': model, 'val_fn': model.evaluate}

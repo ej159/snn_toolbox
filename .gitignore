@@ -1,38 +1,20 @@
-# Logs and databases #
-######################
-examples/models/**/log
-
-# Builds #
-##########
+temp/*
 dist/
 build/
 .eggs/
 snntoolbox.egg-info/
 *.pyc
 __pycache__
-
-# Datasets #
-############
 .cache/
 .idea/
 .tox/
-
-# OSX index file
-
-# Models #
-##########
-/examples/models/vgg16/64.27_85.59.h5
-/examples/models/**/*_INI*
-/examples/models/**/*_parsed*
-/examples/models/lenet5/keras/MegaSim_98.96/
-
-
-/scripts/scotopic
-/.project
-/.pydevproject
-**/log
-**/reports
-**/application_generated_data_files
+.pytest_cache
+.project
+.pydevproject
+.settings/
+**/log/
+**/application_generated_data_files/
+**/reports/
+*.h5
 *.npz
 *.json
-*.h5

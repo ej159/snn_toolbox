@@ -7,7 +7,7 @@ Important functions:
 .. autosummary::
     :nosignatures:
 
-    test_full
+    run_pipeline
     update_setup
 
 @author: rbodo
@@ -24,7 +24,7 @@ from future import standard_library
 standard_library.install_aliases()
 
 
-def test_full(config, queue=None):
+def run_pipeline(config, queue=None):
     """Convert an analog network to a spiking network and simulate it.
 
     Complete pipeline of
@@ -61,37 +61,37 @@ def test_full(config, queue=None):
     target_sim = import_target_sim(config)
     spiking_model = target_sim.SNN(config, queue)
 
-    # ____________________________ LOAD DATASET ______________________________ #
+    # ___________________________ LOAD DATASET ______________________________ #
 
     normset, testset = get_dataset(config)
 
     parsed_model = None
     if config.getboolean('tools', 'parse') and not is_stop(queue):
 
-        # ___________________________ LOAD MODEL _____________________________ #
+        # __________________________ LOAD MODEL _____________________________ #
 
         model_lib = import_module('snntoolbox.parsing.model_libs.' +
                                   config.get('input', 'model_lib') +
                                   '_input_lib')
         input_model = model_lib.load(config.get('paths', 'path_wd'),
-                                     config.get('paths', 'filename_ann'),
-                                     config=config)
+                                     config.get('paths', 'filename_ann'))
 
         # Evaluate input model.
         if config.getboolean('tools', 'evaluate_ann') and not is_stop(queue):
-            print("Evaluating input model on {} samples...".format(num_to_test))
+            print("Evaluating input model on {} samples...".format(
+                num_to_test))
             model_lib.evaluate(input_model['val_fn'],
                                config.getint('simulation', 'batch_size'),
                                num_to_test, **testset)
 
-        # _____________________________ PARSE ________________________________ #
+        # ____________________________ PARSE ________________________________ #
 
         print("Parsing input model...")
         model_parser = model_lib.ModelParser(input_model['model'], config)
         model_parser.parse()
         parsed_model = model_parser.build_parsed_model()
 
-        # ____________________________ NORMALIZE _____________________________ #
+        # ___________________________ NORMALIZE _____________________________ #
 
         if config.getboolean('tools', 'normalize') and not is_stop(queue):
             normalize_parameters(parsed_model, config, **normset)
@@ -106,9 +106,10 @@ def test_full(config, queue=None):
         # Write parsed model to disk
         parsed_model.save(str(
             os.path.join(config.get('paths', 'path_wd'),
-                         config.get('paths', 'filename_parsed_model') + '.h5')))
+                         config.get('paths', 'filename_parsed_model') +
+                         '.h5')))
 
-    # ______________________________ CONVERT _________________________________ #
+    # _____________________________ CONVERT _________________________________ #
 
     if config.getboolean('tools', 'convert') and not is_stop(queue):
         if parsed_model is None:
@@ -125,14 +126,14 @@ def test_full(config, queue=None):
                         config.get('paths', 'path_wd'),
                         config.get('paths', 'filename_parsed_model')))
 
-        spiking_model.build(parsed_model)
+        spiking_model.build(parsed_model, **testset)
 
         # Export network in a format specific to the simulator with which it
         # will be tested later.
         spiking_model.save(config.get('paths', 'path_wd'),
                            config.get('paths', 'filename_snn'))
 
-    # _______________________________ SIMULATE _______________________________ #
+    # ______________________________ SIMULATE _______________________________ #
 
     if config.getboolean('tools', 'simulate') and not is_stop(queue):
 
@@ -250,18 +251,14 @@ def load_config(filepath):
     Load a config file from ``filepath``.
     """
 
-    try:
-        import configparser
-    except ImportError:
-        # noinspection PyPep8Naming,PyUnresolvedReferences
-        import ConfigParser as configparser
-        # noinspection PyUnboundLocalVariable
-        configparser = configparser
+    from snntoolbox.utils.utils import import_configparser
+    configparser = import_configparser()
 
     assert os.path.isfile(filepath), \
         "Configuration file not found at {}.".format(filepath)
 
     config = configparser.ConfigParser()
+    config.optionxform = str
     config.read(filepath)
 
     return config
@@ -270,12 +267,17 @@ def load_config(filepath):
 def update_setup(config_filepath):
     """Update default settings with user settings and check they are valid.
 
-    Load settings from configuration file at ``config_filepath``, and check that
-    parameter choices are valid. Non-specified settings are filled in with
+    Load settings from configuration file at ``config_filepath``, and check
+    that parameter choices are valid. Non-specified settings are filled in with
     defaults.
     """
 
     from textwrap import dedent
+
+    # config.read will not thow an error if the filepath does not exist, and
+    # user values will not override defaults. So check here:
+    assert os.path.isfile(config_filepath), \
+        "Config filepath {} does not exist.".format(config_filepath)
 
     # Load defaults.
     config = load_config(os.path.abspath(os.path.join(
@@ -288,8 +290,8 @@ def update_setup(config_filepath):
     keras_backends = config_string_to_set_of_strings(
         config.get('restrictions', 'keras_backends'))
     assert keras_backend in keras_backends, \
-        "Keras backend {} not supported. Choose from {}.".format(keras_backend,
-                                                                 keras_backends)
+        "Keras backend {} not supported. Choose from {}.".format(
+            keras_backend, keras_backends)
     os.environ['KERAS_BACKEND'] = keras_backend
     # The keras import has to happen after setting the backend environment
     # variable!
@@ -299,12 +301,6 @@ def update_setup(config_filepath):
         "been set to {} by a previous keras import. Set backend " \
         "appropriately in the keras config file.".format(keras_backend,
                                                          k.backend())
-    if keras_backend == 'tensorflow':
-        import tensorflow as tf
-        # Limit GPU usage of tensorflow.
-        tf_config =tf.ConfigProto()
-        tf_config.gpu_options.allow_growth = True
-        k.tensorflow_backend.set_session(tf.Session(config=tf_config))
 
     # Name of input file must be given.
     filename_ann = config.get('paths', 'filename_ann')
@@ -327,6 +323,7 @@ def update_setup(config_filepath):
             saving/reloading methods implemented.) Setting convert = True.
             \n"""))
         config.set('tools', 'convert', str(True))
+        
     elif simulator in config_string_to_set_of_strings(
             config.get('restrictions', 'simulators_pyNN')):
         delay = config.getfloat('cell', 'delay')
@@ -373,7 +370,8 @@ def update_setup(config_filepath):
     model_libs = config_string_to_set_of_strings(config.get('restrictions',
                                                             'model_libs'))
     assert model_lib in model_libs, "ERROR: Input model library '{}' ".format(
-        model_lib) + "not supported yet. Possible values: {}".format(model_libs)
+        model_lib) + "not supported yet. Possible values: {}".format(
+        model_libs)
 
     # Check input model is found and has the right format for the specified
     # model library.
@@ -395,28 +393,6 @@ def update_setup(config_filepath):
             h5_filepath = str(os.path.join(path_wd, filename_ann + '.h5'))
             assert os.path.isfile(h5_filepath), \
                 "File {} not found.".format(h5_filepath)
-            json_file = filename_ann + '.json'
-            if not os.path.isfile(os.path.join(path_wd, json_file)):
-                import keras
-                import h5py
-                from snntoolbox.parsing.utils import \
-                    get_custom_activations_dict, get_custom_layers_dict,\
-                    assemble_custom_dict
-                # Remove optimizer_weights here, because they may cause the
-                # load_model method to fail if the network was trained on a
-                # different platform or keras version
-                # (see https://github.com/fchollet/keras/issues/4044).
-                with h5py.File(h5_filepath, 'a') as f:
-                    if 'optimizer_weights' in f.keys():
-                        del f['optimizer_weights']
-                # Try loading the model.
-                custom_dicts = assemble_custom_dict(
-                        get_custom_activations_dict(
-                            config.get('paths', 'filepath_custom_objects')),
-                get_custom_layers_dict())
-                keras.models.load_model(
-                    h5_filepath, custom_dicts)
-
         elif model_lib == 'lasagne':
             h5_filepath = os.path.join(path_wd, filename_ann + '.h5')
             pkl_filepath = os.path.join(path_wd, filename_ann + '.pkl')
@@ -526,7 +502,8 @@ def update_setup(config_filepath):
                           "plotting.", ImportWarning)
             config.set('output', 'plot_vars', str({}))
     if matplotlib is not None:
-        matplotlib.rcParams.update(eval(config.get('output', 'plotproperties')))
+        matplotlib.rcParams.update(eval(config.get('output',
+                                                   'plotproperties')))
 
     # Check settings for parameter sweep
     param_name = config.get('parameter_sweep', 'param_name')
@@ -561,16 +538,18 @@ def update_setup(config_filepath):
 
 def initialize_simulator(config):
     """Import a module that contains utility functions of spiking simulator."""
-    from importlib import import_module
 
     simulator = config.get('simulation', 'simulator')
     print("Initializing {} simulator...\n".format(simulator))
     if simulator in config_string_to_set_of_strings(
             config.get('restrictions', 'simulators_pyNN')):
-        try:
+        if simulator == 'spiNNaker':
+            try:
+                sim = import_module('pyNN.' + simulator)
+            except ImportError as e:
+                sim = import_module('spynnaker8')
+        else:
             sim = import_module('pyNN.' + simulator)
-        except ImportError as e:
-            sim = import_module('spynnaker8')
 
         # From the pyNN documentation:
         # "Before using any other functions or classes from PyNN, the user
@@ -578,14 +557,12 @@ def initialize_simulator(config):
         # resets the simulator entirely, destroying any network that may
         # have been created in the meantime."
         sim.setup(timestep=config.getfloat('simulation', 'dt'))
-
-        # if simulator == 'spiNNaker':
-        #     sim.set_number_of_neurons_per_core(sim.SpikeSourcePoisson, 100)
-        #     sim.set_number_of_neurons_per_core(sim.IF_curr_exp, 140)
-
         return sim
     if simulator == 'brian2':
         return import_module('brian2')
+    if simulator == 'loihi':
+        import nxsdk.api.n2a as sim
+        return sim
     sim_module_str = None
     if simulator == 'INI':
         spike_code = config.get('conversion', 'spike_code')
