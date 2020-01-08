@@ -56,9 +56,9 @@ class SNN(AbstractSNN):
 
         self.layers = []
         self.connections = []
+        self.celltype = getattr(self.sim, config.get('cell', 'type'))
         self.cellparams = {key: config.getfloat('cell', key) for key in
-                           config_string_to_set_of_strings(config.get(
-                               'restrictions', 'cellparams_pyNN'))}
+                           self.celltype.default_parameters.keys()}
         if 'i_offset' in self.cellparams.keys():
             print("SNN toolbox WARNING: The cell parameter 'i_offset' is "
                   "reserved for the biases and should not be set globally.")
@@ -100,8 +100,8 @@ class SNN(AbstractSNN):
             return
 
         self.layers.append(self.sim.Population(
-            np.prod(layer.output_shape[1:], dtype=np.int).item(),
-            self.sim.IF_curr_exp, self.cellparams, label=layer.name))
+            np.asscalar(np.prod(layer.output_shape[1:], dtype=np.int)),
+            self.celltype, self.cellparams, label=layer.name))
 
         self.layers[-1].initialize(v=self.layers[-1].get('v_rest'))
 

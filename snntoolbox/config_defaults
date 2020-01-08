@@ -69,10 +69,12 @@ early_stopping = False
 number_of_neurons_per_core = 64
 
 [cell]
-v_thresh = 1
+type = IF_curr_exp
+v_thresh = 1 
 tau_refrac = 0
 v_reset = 0
 v_rest = 0
+i_offset = 0
 cm = 1
 tau_m = 1000
 tau_syn_E = 0.01
@@ -135,9 +137,6 @@ spiking_layers = {'Dense', 'Conv1D', 'Conv2D', 'DepthwiseConv2D', 'MaxPooling2D'
 # Layers that can be implemented by our spiking neuron simulators:
 snn_layers = %(spiking_layers)s | {'Reshape', 'Flatten', 'Concatenate',
                                    'ZeroPadding2D'}
-cellparams_pyNN = {'v_thresh', 'v_reset', 'v_rest', 'cm', 'tau_refrac',
-                   'tau_m', 'tau_syn_E', 'tau_syn_I'}
-
 log_vars = {'activations_n_b_l', 'spiketrains_n_b_l_t', 'input_b_l_t',
             'mem_n_b_l_t', 'synaptic_operations_b_t', 'neuron_operations_b_t',
             'all'}

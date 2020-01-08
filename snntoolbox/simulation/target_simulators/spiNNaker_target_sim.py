@@ -91,7 +91,7 @@ class SNN(PYSNN):
             return
         self.layers.append(self.sim.Population(
             np.asscalar(np.prod(layer.output_shape[1:], dtype=np.int)),
-            self.sim.IF_curr_exp, self.cellparams, label=layer.name))
+            self.celltype, self.cellparams, label=layer.name))
 
         self.layers[-1].initialize(v=self.layers[-1].get('v_rest'))
 
