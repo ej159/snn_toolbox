@@ -23,7 +23,8 @@ from snntoolbox.simulation.target_simulators.pyNN_target_sim import SNN as PYSNN
 class SNN(PYSNN):
 
     def scale_weights(self, weights):
-
+        if not self.config.getboolean('tools', 'scale_weights_exp'):
+            return weights
         from math import exp
         # This ignores the leak term
         tau_syn_E = self.config.getfloat('cell', 'tau_syn_E')

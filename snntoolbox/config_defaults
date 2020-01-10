@@ -37,6 +37,7 @@ normalize = True
 convert = True
 simulate = True
 serialise_only = False
+scale_weights_exp = False
 
 [normalization]
 percentile = 99.9
