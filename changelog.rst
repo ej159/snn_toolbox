@@ -1,6 +1,24 @@
 SNN Toolbox: Release Notes
 ==========================
 
+Version 0.4
+-----------
+
+The toolbox now supports deploying converted networks on the SpiNNaker
+architecture!
+
+Thanks to ej159, pabogdan, and rbodo for contributing.
+
+Version 0.3.2
+-------------
+
+Simulation with Brian2 backend now supports:
+    - Constant input currents (less noisy than Poisson input)
+    - Reset-by-subtraction (more accurate than reset-to-zero).
+    - Bias currents
+
+Thanks to wilkieolin for this contribution.
+
 Version 0.3.1
 -------------
 

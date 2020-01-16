@@ -380,6 +380,8 @@ def get_activations_batch(ann, x_batch):
 
     activations_batch = []
     for layer in ann.layers:
+        # Todo: This list should be replaced by
+        #       ``not in eval(config.get('restrictions', 'spiking_layers')``
         if layer.__class__.__name__ in ['Input', 'InputLayer', 'Flatten',
                                         'Concatenate', 'ZeroPadding2D',
                                         'Reshape']:

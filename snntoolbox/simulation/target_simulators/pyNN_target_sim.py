@@ -11,19 +11,16 @@ from __future__ import print_function, unicode_literals
 
 import os
 import sys
+import time
 import warnings
 
-from importlib import import_module
 import numpy as np
 from future import standard_library
 from six.moves import cPickle
 
-from snntoolbox.utils.utils import confirm_overwrite
+from snntoolbox.utils.utils import confirm_overwrite, is_module_installed
 from snntoolbox.simulation.utils import AbstractSNN, get_shape_from_label
 from snntoolbox.bin.utils import config_string_to_set_of_strings
-from snntoolbox.bin.utils import config_string_to_set_of_strings
-from pyNN.utility import ProgressBar
-from textwrap import fill
 
 standard_library.install_aliases()
 
@@ -56,9 +53,9 @@ class SNN(AbstractSNN):
 
         self.layers = []
         self.connections = []
-        self.celltype = getattr(self.sim, config.get('cell', 'type'))
         self.cellparams = {key: config.getfloat('cell', key) for key in
-                           self.celltype.default_parameters.keys()}
+                           config_string_to_set_of_strings(config.get(
+                               'restrictions', 'cellparams_pyNN'))}
         if 'i_offset' in self.cellparams.keys():
             print("SNN toolbox WARNING: The cell parameter 'i_offset' is "
                   "reserved for the biases and should not be set globally.")
@@ -100,8 +97,8 @@ class SNN(AbstractSNN):
             return
 
         self.layers.append(self.sim.Population(
-            np.asscalar(np.prod(layer.output_shape[1:], dtype=np.int)),
-            self.celltype, self.cellparams, label=layer.name))
+            np.prod(layer.output_shape[1:], dtype=np.int).item(),
+            self.sim.IF_curr_exp, self.cellparams, label=layer.name))
 
         self.layers[-1].initialize(v=self.layers[-1].get('v_rest'))
 
@@ -216,10 +213,10 @@ class SNN(AbstractSNN):
                  for amplitude in x_flat]
             self.layers[0].set(spike_times=spike_times)
 
-        from pynn_object_serialisation.functions import intercept_simulator
-        import pylab
-        current_time = pylab.datetime.datetime.now().strftime("_%H%M%S_%d%m%Y")
-        intercept_simulator(self.sim, "snn_toolbox_pynn_" + current_time)
+        if is_module_installed('pynn_object_serialisation'):
+            from pynn_object_serialisation.functions import intercept_simulator
+            current_time = time.strftime("_%H%M%S_%d%m%Y")
+            intercept_simulator(self.sim, "snn_toolbox_pynn_" + current_time)
 
         self.sim.run(self._duration - self._dt,
                      callbacks=[MyProgressBar(self._dt, self._duration)])
@@ -298,7 +295,7 @@ class SNN(AbstractSNN):
         v_thresh = self.config.getfloat('cell', 'v_thresh')
         cm = self.config.getfloat('cell', 'cm')
 
-        i_offset = biases * cm * ((v_thresh - v_rest)) / self._duration
+        i_offset = biases * cm * (v_thresh - v_rest) / self._duration
 
         self.layers[-1].set(i_offset=i_offset)
 
@@ -492,8 +489,6 @@ class SNN(AbstractSNN):
         layers: list[pyNN.Population]
             List of pyNN ``Population`` objects.
         """
-
-        import sys
 
         filepath = os.path.join(path, filename)
         assert os.path.isfile(filepath), \
